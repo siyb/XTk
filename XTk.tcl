@@ -25,6 +25,13 @@ namespace eval xtk {
 		return $sys(commandsToExecute)
 	}
 
+	proc run {commands} {
+		foreach command $commands {
+			puts "$command"
+			eval $command
+		}
+	}
+
 	proc initNamespace {xtkElement} {
 		if {![$xtkElement hasAttribute "namespace"]} {
 			error "The namespace attribute must be provided for the xtk element"
@@ -62,7 +69,7 @@ namespace eval xtk {
 
 			set tkCommand [string trim "$nodeName $path [getOptionsFromAttributes $child $attributes]"]
 
-			lappend sys(commandsToExecute) "[packTkCommand $sys(currentPackCommand) $tkCommand]"
+			addToCommandList "[packTkCommand $sys(currentPackCommand) $tkCommand]"
 			# recursive -> nesting
 			if {$nodeName eq "frame"} {
 				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
@@ -84,11 +91,15 @@ namespace eval xtk {
 	}
 
 	proc handleVariableAttribute {namespace path element} {
-		variable sys
 		if {[hasVariableAttribute $element]} {
 			set variable [getVariableAttribute $element]
-			lappend sys(commandsToExecute) "namespace eval ::${namespace} { set $variable $path }"
+			 addToCommandList "namespace eval ::${namespace} { set $variable $path }"
 		}
+	}
+
+	proc addToCommandList {command} {
+		variable sys
+		lappend sys(commandsToExecute) $command
 	}
 
 	proc hasVariableAttribute {element} {
@@ -137,8 +148,4 @@ namespace eval xtk {
 		}
 	}
 
-}
-
-foreach command [xtk::load /home/siyb/code/XTk/example.xml] {
-	puts $command
 }
