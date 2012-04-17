@@ -17,7 +17,7 @@ namespace eval xtk {
 		set xtkElement [$doc getElementsByTagName "xtk"]
 
 		set namespace [initNamespace $xtkElement]
-		traverseTree 0 $namespace $xtkElement
+		traverseTree . 0 $namespace $xtkElement
 	}
 
 	proc initNamespace {xtkElement} {
@@ -32,25 +32,49 @@ namespace eval xtk {
 		return $namespace
 	}
 
-	proc traverseTree {hierarchielevel namespace xtkElement} {
-		foreach child [$xtkElement childNodes] {
+	proc traverseTree {currentPath hierarchielevel namespace element} {
+		foreach child [$element childNodes] {
+
+			set path [getUniquePathSegmentForLevel $hierarchielevel $currentPath]
 			set nodeName [$child nodeName]
 			set attributes [$child attributes]
+
+			set tkAttributes [list]
+			set tkAttributeValues [list]
+
 			foreach attribute $attributes {
 				if {$attribute eq "variable"} {
+				} else {
+					lappend tkAttributes -${attribute}
+					lappend tkAttributeValues [$child getAttribute $attribute]
 				}
 			}
-			puts "$nodeName | $attributes"
+			set tkCommand "$nodeName $path"
+
+			foreach option $tkAttributes value $tkAttributeValues {
+				set tkCommand "$tkCommand $option $value"
+			}
+
+			# recursive -> nesting
+			if {$nodeName eq "frame"} {
+				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
+			}
 		}	
 	}
 
-	proc getUniquePathPartForLevel {level} {
+	proc getUniquePathSegmentForLevel {level currentPath} {
 		variable sys
+		if {$currentPath eq "."} {
+			set sep ""
+		} else {
+			set sep "."
+		}
 		if {[dict exists $sys(pathCounter) $level]} {
-			return [dict incr sys(pathCounter) $level]
+			dict incr sys(pathCounter) $level
+			return ${currentPath}${sep}[dict get $sys(pathCounter) $level]
 		} else {
 			dict set sys(pathCounter) $level 0
-			return 0
+			return ${currentPath}${sep}0
 		}
 	}
 
