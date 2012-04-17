@@ -6,6 +6,7 @@ namespace eval xtk {
 	variable sys
 
 	set sys(pathCounter) [dict create]
+	set sys(currentPackCommand) ""
 
 	proc load {file} {
 		if {![file exists $file]} {
@@ -33,8 +34,15 @@ namespace eval xtk {
 	}
 
 	proc traverseTree {currentPath hierarchielevel namespace element} {
+		variable sys
+
 		foreach child [$element childNodes] {
-			#handlePack $child;# handle a "pack" node
+
+			if {[isPack $child]} {
+				set sys(currentPackCommand) [getPackOptions $child]
+				traverseTree $currentPath $hierarchielevel $namespace $child
+				continue
+			}
 
 			set nodeName [$child nodeName]
 			set path [getUniquePathSegmentForLevel $hierarchielevel $currentPath]
@@ -43,20 +51,25 @@ namespace eval xtk {
 
 			set tkCommand [string trim "$nodeName $path [getOptionsFromAttributes $child $attributes]"]
 
-			puts "pack \[$tkCommand]"
+			puts "[packTkCommand $sys(currentPackCommand) $tkCommand]"
 			# recursive -> nesting
-			if {$nodeName eq "frame" || $nodeName == "pack"} {
+			if {$nodeName eq "frame"} {
 				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
 			}
 		}	
 	}
 
-	proc handlePack {element} {
+	proc isPack {element} {
 		set nodeName [$element nodeName]
-		if {$nodeName eq "pack"} {
+		return [expr {$nodeName eq "pack"}]
+	}
 
-			return -code continue 
-		}
+	proc getPackOptions {element} {
+		return [getOptionsFromAttributes $element [$element attributes]]
+	}
+
+	proc packTkCommand {packOptions tkCommand} {
+		return "pack \[$tkCommand\] $packOptions"
 	}
 
 	proc getOptionsFromAttributes {element attributes} {
@@ -75,7 +88,7 @@ namespace eval xtk {
 			if {[llength $value] > 1} {
 				set value \"$value\"
 			}
-			append ret " $option $value"
+			append ret "$option $value "
 		}
 		return $ret
 	}
