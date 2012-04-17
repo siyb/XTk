@@ -1,13 +1,13 @@
 <xtk namespace="foo">
 	<pack>
 		<frame variable="xyz">
-			<pack fill="both" expand="1">
+			<pack fill="both" expand="1" side="right">
 				<button text="Hi there" variable="hitherebutton" command="exit" />
 			</pack>
-			<pack fill="both" expand="0">
+			<pack fill="both" expand="0" side="left" before="@hitherebutton">
 				<label text="TestLable" variable="testlabel" />
 			</pack>
-			<pack fill="x" expand="0">
+			<pack fill="x" expand="0" side="bottom">
 				<label text="FOO" variable="foo" />
 				<label text="BAR" variable="bar" />
 			</pack>
