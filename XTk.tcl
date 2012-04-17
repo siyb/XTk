@@ -3,12 +3,15 @@ package provide XTk 0.1
 package require tdom
 
 namespace eval xtk {
+	namespace import ::tcl::mathop::*
 	variable sys
 
 	set sys(pathCounter) [dict create]
 	set sys(currentPackCommand) ""
+	set sys(commandsToExecute) [list]
 
 	proc load {file} {
+		variable sys
 		if {![file exists $file]} {
 			error "File not found: $file"
 		}
@@ -19,6 +22,7 @@ namespace eval xtk {
 
 		set namespace [initNamespace $xtkElement]
 		traverseTree . 0 $namespace $xtkElement
+		return $sys(commandsToExecute)
 	}
 
 	proc initNamespace {xtkElement} {
@@ -54,9 +58,11 @@ namespace eval xtk {
 			set nodeName [$child nodeName]
 			set attributes [$child attributes]
 
+			handleVariableAttribute $namespace $path $child
+
 			set tkCommand [string trim "$nodeName $path [getOptionsFromAttributes $child $attributes]"]
 
-			puts "[packTkCommand $sys(currentPackCommand) $tkCommand]"
+			lappend sys(commandsToExecute) "[packTkCommand $sys(currentPackCommand) $tkCommand]"
 			# recursive -> nesting
 			if {$nodeName eq "frame"} {
 				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
@@ -77,12 +83,29 @@ namespace eval xtk {
 		return "pack \[$tkCommand\] $packOptions"
 	}
 
+	proc handleVariableAttribute {namespace path element} {
+		variable sys
+		if {[hasVariableAttribute $element]} {
+			set variable [getVariableAttribute $element]
+			lappend sys(commandsToExecute) "namespace eval ::${namespace} { set $variable $path }"
+		}
+	}
+
+	proc hasVariableAttribute {element} {
+		return [$element hasAttribute "variable"]
+	}
+
+	proc getVariableAttribute {element} {
+		return [$element getAttribute "variable"]
+	}
+
 	proc getOptionsFromAttributes {element attributes} {
 		set tkAttributes [list]
 		set tkAttributeValues [list]
 
 		foreach attribute $attributes {
 			if {$attribute eq "variable"} {
+				continue
 			} else {
 				lappend tkAttributes -${attribute}
 				lappend tkAttributeValues [$element getAttribute $attribute]
@@ -116,4 +139,6 @@ namespace eval xtk {
 
 }
 
-xtk::load /home/siyb/code/XTk/example.xml
+foreach command [xtk::load /home/siyb/code/XTk/example.xml] {
+	puts $command
+}
