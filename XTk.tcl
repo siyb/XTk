@@ -50,7 +50,7 @@ namespace eval xtk {
 		foreach child [$element childNodes] {
 
 			if {[isPack $child]} {
-				set sys(currentPackCommand) [getPackOptions $child]
+				set sys(currentPackCommand) [getPackOptions $namespace $child]
 				traverseTree $currentPath $hierarchielevel $namespace $child
 				continue
 			} else {
@@ -67,7 +67,7 @@ namespace eval xtk {
 
 			handleVariableAttribute $namespace $path $child
 
-			set tkCommand [string trim "$nodeName $path [getOptionsFromAttributes $child $attributes]"]
+			set tkCommand [string trim "$nodeName $path [getOptionsFromAttributes $namespace $child $attributes]"]
 
 			addToCommandList "[packTkCommand $sys(currentPackCommand) $tkCommand]"
 			# recursive -> nesting
@@ -82,8 +82,8 @@ namespace eval xtk {
 		return [expr {$nodeName eq "pack"}]
 	}
 
-	proc getPackOptions {element} {
-		return [getOptionsFromAttributes $element [$element attributes]]
+	proc getPackOptions {namespace element} {
+		return [getOptionsFromAttributes $namespace $element [$element attributes]]
 	}
 
 	proc packTkCommand {packOptions tkCommand} {
@@ -110,7 +110,7 @@ namespace eval xtk {
 		return [$element getAttribute "variable"]
 	}
 
-	proc getOptionsFromAttributes {element attributes} {
+	proc getOptionsFromAttributes {namespace element attributes} {
 		set tkAttributes [list]
 		set tkAttributeValues [list]
 
@@ -119,7 +119,11 @@ namespace eval xtk {
 				continue
 			} else {
 				lappend tkAttributes -${attribute}
-				lappend tkAttributeValues [$element getAttribute $attribute]
+				set value [$element getAttribute $attribute]
+				if {[string index $value 0] eq "@"} {
+					set value \$::${namespace}::[string range $value 1 end]
+				}
+				lappend tkAttributeValues $value
 			}
 		}
 		set ret ""
