@@ -42,6 +42,11 @@ namespace eval xtk {
 				set sys(currentPackCommand) [getPackOptions $child]
 				traverseTree $currentPath $hierarchielevel $namespace $child
 				continue
+			} else {
+				set parent [[$child parentNode] nodeName]
+				if {$parent ne "pack"} {
+					error "you must surround widget elements with pack elements"
+				}
 			}
 
 			set nodeName [$child nodeName]
