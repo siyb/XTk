@@ -34,32 +34,50 @@ namespace eval xtk {
 
 	proc traverseTree {currentPath hierarchielevel namespace element} {
 		foreach child [$element childNodes] {
+			#handlePack $child;# handle a "pack" node
 
+			set nodeName [$child nodeName]
 			set path [getUniquePathSegmentForLevel $hierarchielevel $currentPath]
 			set nodeName [$child nodeName]
 			set attributes [$child attributes]
 
-			set tkAttributes [list]
-			set tkAttributeValues [list]
+			set tkCommand [string trim "$nodeName $path [getOptionsFromAttributes $child $attributes]"]
 
-			foreach attribute $attributes {
-				if {$attribute eq "variable"} {
-				} else {
-					lappend tkAttributes -${attribute}
-					lappend tkAttributeValues [$child getAttribute $attribute]
-				}
-			}
-			set tkCommand "$nodeName $path"
-
-			foreach option $tkAttributes value $tkAttributeValues {
-				set tkCommand "$tkCommand $option $value"
-			}
-
+			puts "pack \[$tkCommand]"
 			# recursive -> nesting
-			if {$nodeName eq "frame"} {
+			if {$nodeName eq "frame" || $nodeName == "pack"} {
 				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
 			}
 		}	
+	}
+
+	proc handlePack {element} {
+		set nodeName [$element nodeName]
+		if {$nodeName eq "pack"} {
+
+			return -code continue 
+		}
+	}
+
+	proc getOptionsFromAttributes {element attributes} {
+		set tkAttributes [list]
+		set tkAttributeValues [list]
+
+		foreach attribute $attributes {
+			if {$attribute eq "variable"} {
+			} else {
+				lappend tkAttributes -${attribute}
+				lappend tkAttributeValues [$element getAttribute $attribute]
+			}
+		}
+		set ret ""
+		foreach option $tkAttributes value $tkAttributeValues {
+			if {[llength $value] > 1} {
+				set value \"$value\"
+			}
+			append ret " $option $value"
+		}
+		return $ret
 	}
 
 	proc getUniquePathSegmentForLevel {level currentPath} {
