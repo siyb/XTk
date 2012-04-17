@@ -3,6 +3,9 @@ package provide XTk 0.1
 package require tdom
 
 namespace eval xtk {
+	variable sys
+
+	set sys(pathCounter) [dict create]
 
 	proc load {file} {
 		if {![file exists $file]} {
@@ -14,6 +17,7 @@ namespace eval xtk {
 		set xtkElement [$doc getElementsByTagName "xtk"]
 
 		set namespace [initNamespace $xtkElement]
+		traverseTree 0 $namespace $xtkElement
 	}
 
 	proc initNamespace {xtkElement} {
@@ -26,6 +30,28 @@ namespace eval xtk {
 		}
 		namespace eval ::${namespace} { }
 		return $namespace
+	}
+
+	proc traverseTree {hierarchielevel namespace xtkElement} {
+		foreach child [$xtkElement childNodes] {
+			set nodeName [$child nodeName]
+			set attributes [$child attributes]
+			foreach attribute $attributes {
+				if {$attribute eq "variable"} {
+				}
+			}
+			puts "$nodeName | $attributes"
+		}	
+	}
+
+	proc getUniquePathPartForLevel {level} {
+		variable sys
+		if {[dict exists $sys(pathCounter) $level]} {
+			return [dict incr sys(pathCounter) $level]
+		} else {
+			dict set sys(pathCounter) $level 0
+			return 0
+		}
 	}
 
 }
