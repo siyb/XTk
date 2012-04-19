@@ -1,4 +1,4 @@
-<xtk namespace="foo">
+<xtk namespace="foo" ttk="1">
 	<pack>
 		<frame variable="xyz">
 			<pack fill="both" expand="1" side="right">

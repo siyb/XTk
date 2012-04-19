@@ -22,7 +22,9 @@ namespace eval xtk {
 		set xtkElement [$doc getElementsByTagName "xtk"]
 
 		set namespace [initNamespace $xtkElement]
-		traverseTree . 0 $namespace $xtkElement
+		set ttk [initTtk $xtkElement]
+
+		traverseTree . 0 $namespace $xtkElement $ttk
 		return $sys(commandsToExecute)
 	}
 
@@ -31,6 +33,10 @@ namespace eval xtk {
 			puts "$command"
 			eval $command
 		}
+	}
+
+	proc initTtk {xtkElement} {
+		return [$xtkElement getAttribute "ttk" 0]
 	}
 
 	proc initNamespace {xtkElement} {
@@ -45,14 +51,14 @@ namespace eval xtk {
 		return $namespace
 	}
 
-	proc traverseTree {currentPath hierarchielevel namespace element} {
+	proc traverseTree {currentPath hierarchielevel namespace element ttk} {
 		variable sys
 
 		foreach child [$element childNodes] {
 
 			if {[isPack $child]} {
 				set sys(currentPackCommand) [getPackOptions $namespace $child]
-				traverseTree $currentPath $hierarchielevel $namespace $child
+				traverseTree $currentPath $hierarchielevel $namespace $child $ttk
 				continue
 			} else {
 				set parent [[$child parentNode] nodeName]
@@ -68,12 +74,16 @@ namespace eval xtk {
 
 			handleVariableAttribute $namespace $path $child
 
-			set tkCommand [string trim "$nodeName $path [getOptionsFromAttributes $namespace $child $attributes]"]
+			if {$ttk} {
+				set tkCommand [string trim "ttk::$nodeName $path [getOptionsFromAttributes $namespace $child $attributes]"]
+			} else {
+				set tkCommand [string trim "${nodeName} $path [getOptionsFromAttributes $namespace $child $attributes]"]
+			}
 
 			addToCommandList "[packTkCommand $sys(currentPackCommand) $tkCommand]"
 			# recursive -> nesting
 			if {$nodeName eq "frame"} {
-				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
+				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child $ttk
 			}
 		}	
 	}
