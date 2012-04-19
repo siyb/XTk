@@ -12,7 +12,7 @@ namespace eval xtk {
 
 	# stores the most recent pack command to be invoked
 	# on child widgets. 
-	set sys(currentPackCommand) ""
+	set sys(currentGeomanagerCommand) ""
 
 	# TODO: more sophisticated data structure in order to
 	# provide better code generation
@@ -22,7 +22,10 @@ namespace eval xtk {
 	set sys(commandsToExecute) [list]
 
 	# a list of available geometry managers
-	set sys(geomanager) [list pack place grid]
+	set sys(geomanager,all) [list pack place grid]
+
+	# a list of all supported geometry managers
+	set sys(geomanager,supported) [list pack]
 
 	# a list of ttk widgets that is used to optain validation data
 	set sys(widgets,ttk) [list ttk::button ttk::checkbutton ttk::combobox ttk::entry ttk::frame ttk::label ttk::labelframe ttk::menubutton ttk::notebook ttk::panedwindow ttk::progressbar ttk::radiobutton ttk::scale ttk::scrollbar ttk::separator ttk::sizegrip ttk::spinbox ttk::treeview]
@@ -33,6 +36,11 @@ namespace eval xtk {
 	# a dict containing widget option validation data after
 	# obtainValidationData has been called
 	set sys(validation,widget,options) [dict create]
+
+	# a dict containing geometry manager validation data.
+	# unline validation,widget,options, this dict is constructed
+	# manually
+	dict set sys(validation,geomanager,options) pack [list -after -anchor -expand -fill -in -ipadx -ipady -padx -pady -side -before]
 
 	proc load {file} {
 		variable sys
@@ -81,13 +89,16 @@ namespace eval xtk {
 		foreach child [$element childNodes] {
 
 			set nodeName [$child nodeName]
-
+			set originalNodeName $nodeName
 			if {$ttk} {
 				set nodeName ttk::${nodeName}
 			}
 
-			if {[isPack $child]} {
-				set sys(currentPackCommand) [getPackOptions $namespace $child]
+			if {[isGeometryManager $originalNodeName]} {
+				if {![isGeometryManagerSupported $originalNodeName]} {
+					throwNodeErrorMessage $child "sorry, the '$originalNodeName' geometry manager is not yet supported!"
+				}
+				set sys(currentGeomanagerCommand) [getPackOptions $namespace $child]
 				traverseTree $currentPath $hierarchielevel $namespace $child $ttk
 				continue
 			} else {
@@ -107,7 +118,7 @@ namespace eval xtk {
 
 			set tkCommand [string trim "${nodeName} $path [getOptionsFromAttributes $namespace $child]"]
 
-			addToCommandList "[packTkCommand $sys(currentPackCommand) $tkCommand]"
+			addToCommandList "[packTkCommand $sys(currentGeomanagerCommand) $tkCommand]"
 			# recursive -> nesting
 			if {$nodeName eq "frame"} {
 				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child $ttk
@@ -158,8 +169,14 @@ namespace eval xtk {
 			} else {
 				set widget [$element nodeName]
 				set attr -${attribute}
-				if {![isGeometryManager $element] && ![isOptionValidForWidget $widget $attr]} {
-					throwNodeErrorMessage $element "option '$attribute' not supported for widget '$widget'"
+				if {[isGeometryManager $widget]} {
+					if {![isOptionValidForGeometryManager $widget $attr]} {
+						throwNodeErrorMessage $element "option '$attribute' not supported for geometrymanager '$widget'"
+					}
+				} else {
+					if {![isOptionValidForWidget $widget $attr]} {
+						throwNodeErrorMessage $element "option '$attribute' not supported for widget '$widget'"
+					}
 				}
 				lappend tkAttributes $attr
 				set value [$element getAttribute $attribute]
@@ -247,9 +264,19 @@ namespace eval xtk {
 		return [in $option [dict get $sys(validation,widget,options) $widget]]
 	}
 	
-	proc isGeometryManager {node} {
+	proc isGeometryManager {geomanager} {
 		variable sys
-		return [in [$node nodeName] $sys(geomanager)]
+		return [in $geomanager $sys(geomanager,all)]
+	}
+
+	proc isGeometryManagerSupported {geomanager} {
+		variable sys
+		return [in $geomanager $sys(geomanager,supported)]
+	}
+
+	proc isOptionValidForGeometryManager {geomanager option} {
+		variable sys
+		return [in $option [dict get $sys(validation,geomanager,options) $geomanager]]
 	}
 
 	obtainValidationData
