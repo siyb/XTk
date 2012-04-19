@@ -163,15 +163,14 @@ namespace eval xtk {
 			}
 
 			set path [getUniquePathSegmentForLevel $hierarchielevel $currentPath]
-			set nodeName [$child nodeName]
 
 			handleVariableAttribute $namespace $path $child
 
 			set tkCommand [string trim "${nodeName} $path [getOptionsFromAttributes $namespace $child]"]
-
 			addCommand $namespace "[packTkCommand $sys(currentGeomanagerCommand) $tkCommand]"
+
 			# recursive -> nesting
-			if {$nodeName eq "frame"} {
+			if {$originalNodeName eq "frame"} {
 				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
 			}
 		}	
