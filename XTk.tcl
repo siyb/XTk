@@ -21,6 +21,7 @@ namespace eval xtk {
 	# here are generated from xml
 	set sys(commandsToExecute) [list]
 
+	# a list of available geometry managers
 	set sys(geomanager) [list pack place grid]
 
 	# a list of ttk widgets that is used to optain validation data
@@ -101,11 +102,10 @@ namespace eval xtk {
 
 			set path [getUniquePathSegmentForLevel $hierarchielevel $currentPath]
 			set nodeName [$child nodeName]
-			set attributes [$child attributes]
 
 			handleVariableAttribute $namespace $path $child
 
-			set tkCommand [string trim "${nodeName} $path [getOptionsFromAttributes $namespace $child $attributes]"]
+			set tkCommand [string trim "${nodeName} $path [getOptionsFromAttributes $namespace $child]"]
 
 			addToCommandList "[packTkCommand $sys(currentPackCommand) $tkCommand]"
 			# recursive -> nesting
@@ -121,7 +121,7 @@ namespace eval xtk {
 	}
 
 	proc getPackOptions {namespace element} {
-		return [getOptionsFromAttributes $namespace $element [$element attributes]]
+		return [getOptionsFromAttributes $namespace $element]
 	}
 
 	proc packTkCommand {packOptions tkCommand} {
@@ -148,15 +148,20 @@ namespace eval xtk {
 		return [$element getAttribute "variable"]
 	}
 
-	proc getOptionsFromAttributes {namespace element attributes} {
+	proc getOptionsFromAttributes {namespace element} {
 		set tkAttributes [list]
 		set tkAttributeValues [list]
 
-		foreach attribute $attributes {
+		foreach attribute [$element attributes] {
 			if {$attribute eq "variable"} {
 				continue
 			} else {
-				lappend tkAttributes -${attribute}
+				set widget [$element nodeName]
+				set attr -${attribute}
+				if {![isGeometryManager $element] && ![isOptionValidForWidget $widget $attr]} {
+					throwNodeErrorMessage $element "option '$attribute' not supported for widget '$widget'"
+				}
+				lappend tkAttributes $attr
 				set value [$element getAttribute $attribute]
 				if {[string index $value 0] eq "@"} {
 					set value \$::${namespace}::[string range $value 1 end]
@@ -238,10 +243,15 @@ namespace eval xtk {
 	}
 
 	proc isOptionValidForWidget {widget option} {
-		variable
+		variable sys
 		return [in $option [dict get $sys(validation,widget,options) $widget]]
 	}
 	
+	proc isGeometryManager {node} {
+		variable sys
+		return [in [$node nodeName] $sys(geomanager)]
+	}
+
 	obtainValidationData
 
 	namespace export run load
