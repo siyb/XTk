@@ -16,6 +16,7 @@ namespace eval xtk {
 			error "File not found: $file"
 		}
 		set data [read [set fl [open $file r]]];close $fl
+		dom setStoreLineColumn true
 		set doc [dom parse $data]
 		
 		set xtkElement [$doc getElementsByTagName "xtk"]
@@ -34,11 +35,11 @@ namespace eval xtk {
 
 	proc initNamespace {xtkElement} {
 		if {![$xtkElement hasAttribute "namespace"]} {
-			error "The namespace attribute must be provided for the xtk element"
+			error "line [$xtkElement getLine]: The namespace attribute must be provided for the xtk element"
 		}
 		set namespace [$xtkElement getAttribute "namespace"]
 		if {$namespace eq ""} {
-			error "The namespace attribute of the xtk element must not be empty"
+			error "line [$xtkElement getLine]: The namespace attribute of the xtk element must not be empty"
 		}
 		namespace eval ::${namespace} { }
 		return $namespace
@@ -56,7 +57,7 @@ namespace eval xtk {
 			} else {
 				set parent [[$child parentNode] nodeName]
 				if {$parent ne "pack"} {
-					error "you must surround widget elements with pack elements"
+					error "line [$child getLine]: you must surround widget elements with pack elements: line"
 				}
 			}
 
