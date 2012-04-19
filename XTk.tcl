@@ -41,11 +41,11 @@ namespace eval xtk {
 
 	proc initNamespace {xtkElement} {
 		if {![$xtkElement hasAttribute "namespace"]} {
-			error "line [$xtkElement getLine]: The namespace attribute must be provided for the xtk element"
+			throwNodeErrorMessage $xtkElement "The namespace attribute must be provided for the xtk element"
 		}
 		set namespace [$xtkElement getAttribute "namespace"]
 		if {$namespace eq ""} {
-			error "line [$xtkElement getLine]: The namespace attribute of the xtk element must not be empty"
+			throwNodeErrorMessage $xtkElement "The namespace attribute of the xtk element must not be empty"
 		}
 		namespace eval ::${namespace} { }
 		return $namespace
@@ -63,7 +63,7 @@ namespace eval xtk {
 			} else {
 				set parent [[$child parentNode] nodeName]
 				if {$parent ne "pack"} {
-					error "line [$child getLine]: you must surround widget elements with pack elements: line"
+					throwNodeErrorMessage $child "you must surround widget elements with pack elements"
 				}
 			}
 
@@ -163,4 +163,9 @@ namespace eval xtk {
 		}
 	}
 
+	proc throwNodeErrorMessage {node message} {
+		error "line: [$node getLine] column: [$node getColumn] -> $message"
+	}
+	
+	namespace export run load
 }
