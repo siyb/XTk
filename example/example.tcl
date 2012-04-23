@@ -9,3 +9,6 @@ xtk::run $generatedCode
 
 $::foo::hitherebutton configure -text "CHANGED BUTTON TEXT"
 
+proc foo::bindCallback {path args} {
+	puts "Callback from '$path' -> '$args'"
+}

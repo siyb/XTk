@@ -10,6 +10,9 @@
 			<pack fill="x" expand="0" side="bottom">
 				<label text="FOO" variable="foo" />
 				<label text="BAR" variable="bar" />
+				<label text="BINDTEST" variable="bindtest">
+					<bind event="Button-1" callbackString="%W %T" virtual="0" />
+				</label>
 			</pack>
 		</frame>
 	</pack>

@@ -85,6 +85,17 @@ namespace eval xtk {
 					append code "\t$command\n"
 				}
 			}
+			if {[dict exists $sys(generate,code) ${namespace}_binds]} {
+				append code "\n\t# GUI Bindings\n"
+				foreach {path evnt virtual callbackString} [dict get $sys(generate,code) ${namespace}_binds] {
+					if {$virtual} {
+						set evnt "<<$evnt>>"
+					} else {
+						set evnt "<$evnt>"
+					}
+					append code "\tbind $path $evnt { ${namespace}::bindCallback $path $callbackString }\n"
+				}
+			}
 			append code "}\n"
 		}
 		return $code
@@ -94,6 +105,11 @@ namespace eval xtk {
 		variable sys
 		addNamespaceToCode $namespace
 		dict lappend sys(generate,code) ${namespace}_commands $command
+	}
+
+	proc addBind {namespace path event virtual callbackString} {
+		variable sys
+		dict lappend sys(generate,code) ${namespace}_binds $path $event $virtual $callbackString
 	}
 
 	proc addVariable {namespace variableName value} {
@@ -149,7 +165,11 @@ namespace eval xtk {
 				if {![isGeometryManagerSupported $originalNodeName]} {
 					throwNodeErrorMessage $child "sorry, the '$originalNodeName' geometry manager is not yet supported!"
 				}
+				if {[hasBindCommand $element]} {
+					throwNodeErrorMessage $child "bind may not be a child of any geometry manager node"
+				}
 				set sys(currentGeomanagerCommand) [getPackOptions $namespace $child]
+
 				traverseTree $currentPath $hierarchielevel $namespace $child
 				continue
 			} else {
@@ -164,6 +184,7 @@ namespace eval xtk {
 
 			set path [getUniquePathSegmentForLevel $hierarchielevel $currentPath]
 
+			handleBindCommand $namespace $path $child
 			handleVariableAttribute $namespace $path $child
 
 			set tkCommand [string trim "${nodeName} $path [getOptionsFromAttributes $namespace $child]"]
@@ -174,6 +195,25 @@ namespace eval xtk {
 				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
 			}
 		}	
+	}
+
+	proc handleBindCommand {namespace path child} {
+		if {[hasBindCommand $child]} {
+			set bindCommands [getBindCommands $child]
+			foreach bindCommand $bindCommands {
+				if {![hasEvent $bindCommand]} {
+					throwNodeErrorMessage $bindCommand "you need to provide the event attribute"
+				}
+				if {![hasVirtual $bindCommand]} {
+					throwNodeErrorMessage $bindCommand "you need to provide the virtual attribute"
+				}
+				set evnt [getEvent $bindCommand]
+				set callbackString [$bindCommand getAttribute "callbackString" ""]
+				set virtual [$bindCommand getAttribute "virtual"]
+				addBind $namespace $path $evnt $virtual $callbackString
+			}
+		}
+
 	}
 
 	proc isPack {element} {
@@ -202,6 +242,39 @@ namespace eval xtk {
 
 	proc getVariableAttribute {element} {
 		return [$element getAttribute "variable"]
+	}
+
+	proc hasBindCommand {element} {
+		foreach childNode [$element childNodes] {
+			if {[$childNode nodeName] eq "bind"} {
+				return 1
+			}
+		}
+		return 0
+	}
+
+	proc getBindCommands {element} {
+		return [$element getElementsByTagName "bind"]
+	}
+
+	proc hasVirtual {element} {
+		return [$element hasAttribute "virtual"]
+	}
+
+	proc isVirtual {element} {
+		set virtual [$element getAttribute "virtual"]
+		if {$virtual != 0 && $virtual != 1} {
+			throwNodeErrorMessage $element "virtual must be 1 or 0"
+		}
+		return $virtual
+	}
+
+	proc hasEvent {element} {
+		return [$element hasAttribute "event"]
+	}
+
+	proc getEvent {element} {
+		return [$element getAttribute "event"]
 	}
 
 	proc getOptionsFromAttributes {namespace element} {
