@@ -49,18 +49,22 @@ namespace eval xtk {
 		if {![file exists $file]} {
 			error "File not found: $file"
 		}
-		set sys(generate,code) [dict create];# reset generated code
 
 		set data [read [set fl [open $file r]]];close $fl
-		dom setStoreLineColumn true
-		set doc [dom parse $data]
+		return [xml2tk $data]
+	}
+
+	proc xml2tk {xml} {
+		variable sys
+		set sys(generate,code) [dict create];# reset generated code
 		
+		dom setStoreLineColumn true
+		set doc [dom parse $xml]
 		set xtkElement [$doc getElementsByTagName "xtk"]
 
 		set namespace [initNamespace $xtkElement]
 		set sys(ttk) [initTtk $xtkElement]
-
-		traverseTree . 0 $namespace $xtkElement 
+		traverseTree . 0 $namespace $xtkElement
 		return [generateCode]
 	}
 
@@ -401,5 +405,5 @@ namespace eval xtk {
 
 	obtainValidationData
 
-	namespace export run load
+	namespace export run load xml2tk
 }
