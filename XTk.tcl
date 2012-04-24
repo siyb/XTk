@@ -1,12 +1,17 @@
 package provide XTk 0.1
 
 package require tdom
-if {[catch { package require base64 } err]} {
-		puts "*** warn *** base64 could not be found, you may not encode images using base64!"
-}
 namespace eval xtk {
 	namespace import ::tcl::mathop::*
 	variable sys
+
+	if {[catch { package require base64 } err]} {
+		puts "*** warn *** base64 could not be found, you may not encode images using base64!"
+		set sys(base64) 0
+	} else {
+		set sys(base64) 1
+	}
+
 
 	# version identifier
 	set sys(meta,version) "alpha"
@@ -89,7 +94,7 @@ namespace eval xtk {
 				append code "\tnamespace eval images {\n"
 				append base64code "\nnamespace eval ${namespace}::images {\n"
 				foreach {namespace type options variable base64} [dict get $sys(generate,code) ${namespace}_images] {
-					if {$base64} {
+					if {$base64 && $sys(base64)} {
 						set base64Data [base64Encode [dict get $options "-file"]]
 						append base64code "\t\tset base64(${variable}) \"$base64Data\"\n"
 						set options [dict remove $options "-file"]
