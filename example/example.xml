@@ -1,19 +1,21 @@
-<xtk namespace="foo" ttk="1">
+<xtk namespace="example" ttk="1">
 	<pack>
 		<frame variable="xyz">
 			<pack fill="both" expand="1" side="right">
-				<button text="Hi there" variable="hitherebutton" command="exit" />
+				<button text="Close" variable="buttonClose" command="exit" />
 			</pack>
-			<pack fill="both" expand="0" side="left" before="@hitherebutton">
-				<label text="TestLable" variable="testlabel" />
-			</pack>
-			<pack fill="x" expand="0" side="bottom">
-				<label text="FOO" variable="foo" />
-				<label text="BAR" variable="bar" />
-				<label text="BINDTEST" variable="bindtest">
-					<bind event="Button-1" callbackString="%W %T" virtual="0" />
-				</label>
+			<pack fill="both" expand="0" side="left" before="@buttonClose">
+				<label text="Close button: " variable="lableCloseButton" />
 			</pack>
 		</frame>
+		<pack fill="x" expand="0" side="bottom">
+			<label text="This label reacts on mouse1 clicks" variable="labelBindTest">
+				<bind event="Button-1" callbackString="%W %T" virtual="0" />
+			</label>
+		</pack>
+		<pack fill="x" side="bottom" after="@labelBindTest">
+			<label image="@images::imagevariable" />
+		</pack>
 	</pack>
+	<image type="photo" variable="imagevariable"/>
 </xtk>

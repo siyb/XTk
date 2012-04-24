@@ -7,8 +7,8 @@ puts $generatedCode
 
 xtk::run $generatedCode
 
-$::foo::hitherebutton configure -text "CHANGED BUTTON TEXT"
+$::example::buttonClose configure -text "Exit"
 
-proc foo::bindCallback {path args} {
+proc example::bindCallback {path args} {
 	puts "Callback from '$path' -> '$args'"
 }
