@@ -1,7 +1,6 @@
 #!/usr/bin/env wish
+package require XTk
 package require Img
-
-source ../XTk.tcl
 
 set generatedCode [xtk::load example.xml]
 
