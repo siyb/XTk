@@ -1,5 +1,6 @@
 package provide XTk 0.1
 
+package require Tk
 package require tdom
 namespace eval xtk {
 	namespace import ::tcl::mathop::*
