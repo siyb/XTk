@@ -98,9 +98,11 @@ namespace eval xtk {
 						set base64Data [base64Encode [dict get $options "-file"]]
 						append base64code "\t\tset base64(${variable}) \"$base64Data\"\n"
 						set options [dict remove $options "-file"]
-						dict set options -data ${namespace}::images::base64::(${variable})
+						dict set options -data $${namespace}::images::base64(${variable})
+						append code "\t\tset $variable \[image create $type [join $options]]\n"
+					} else {
+						append code "\t\tset $variable \[image create $type $options]\n"
 					}
-					append code "\t\tset $variable \[image create $type $options]\n"
 				}
 				append base64code "}\n"
 				append code "\t}\n"
