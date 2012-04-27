@@ -320,6 +320,9 @@ namespace eval xtk {
 					throwNodeErrorMessage $bindCommand "you need to provide the virtual attribute"
 				}
 				set evnt [getEvent $bindCommand]
+				if {$evnt eq ""} {
+					throwNodeErrorMessage $bindCommand "event may not be empty"
+				}
 				set callbackString [$bindCommand getAttribute "callbackString" ""]
 				set virtual [$bindCommand getAttribute "virtual"]
 				addBind $namespace $path $evnt $virtual $callbackString
@@ -382,7 +385,7 @@ namespace eval xtk {
 
 	proc isVirtual {element} {
 		set virtual [$element getAttribute "virtual"]
-		if {$virtual != 0 && $virtual != 1} {
+		if {![isBoolean $virtual]} {
 			throwNodeErrorMessage $element "virtual must be 1 or 0"
 		}
 		return $virtual
@@ -416,7 +419,7 @@ namespace eval xtk {
 					}
 				} elseif {[isImageCommand $element]} {
 					if {![isOptionValidForImage [getTypeAttribute $element] $attr]} {
-						throwNodeErrorMessage $element "option '$attribute' not supported by '$widget'" 
+						throwNodeErrorMessage $element "option '$attribute' not supported by image '$widget'" 
 					}
 				} else {
 					if {![isOptionValidForWidget $widget $attr]} {
