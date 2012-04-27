@@ -1,0 +1,3 @@
+<xtk namespace="xtktest">
+	<image type="photo" variable="testVariable" base64="1" data="test" file="testfile" />
+</xtk>

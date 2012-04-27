@@ -1,0 +1,5 @@
+<xtk namespace="xtktest">
+	<pack>
+		<bind virtual="0" event="<Button-1>" />
+	</pack>
+</xtk>

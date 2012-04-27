@@ -1,0 +1,5 @@
+<xtk namespace="xtktest">
+	<pack>
+		<label UnSupportedAttribute="test" />
+	</pack>
+</xtk>

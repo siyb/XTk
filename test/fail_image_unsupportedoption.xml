@@ -1,0 +1,3 @@
+<xtk namespace="xtktest">
+	<image type="photo" variable="test" UnSupportedAttribute="test" />
+</xtk>
