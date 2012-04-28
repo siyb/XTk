@@ -262,8 +262,8 @@ namespace eval xtk {
 				set parent [$child parentNode]
 				if {$originalNodeName ne "toplevel" && ![isPack $parent]} {
 					throwNodeErrorMessage $child "you must surround widget elements with pack elements '$originalNodeName'"
-				} elseif {$originalNodeName eq "toplevel" && [isPack $parent]} {
-					throwNodeErrorMessage $child "toplevel windows cannot be packed"
+				} elseif {$originalNodeName eq "toplevel" && ![isXtk $parent]} {
+					throwNodeErrorMessage $child "toplevel must be a child node of xtk"
 				}
 			} elseif {$originalNodeName eq "toplevel"} {
 				# required so that we don't run into else
@@ -320,6 +320,10 @@ namespace eval xtk {
 
 	proc getNamespaceAttribute {element} {
 		return [$element getAttribute "namespace"]
+	}
+
+	proc isXtk {element} {
+		return [eq [$element nodeName] "xtk"]
 	}
 
 	proc handleBindCommand {namespace path child} {
