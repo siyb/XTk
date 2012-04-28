@@ -41,7 +41,7 @@ namespace eval xtk {
 	set sys(widgets,ttk) [list ttk::button ttk::checkbutton ttk::combobox ttk::entry ttk::frame ttk::label ttk::labelframe ttk::menubutton ttk::notebook ttk::panedwindow ttk::progressbar ttk::radiobutton ttk::scale ttk::scrollbar ttk::separator ttk::sizegrip ttk::spinbox ttk::treeview]
 
 	# a list of tk widgets that is used to obtain validation data
-	set sys(widgets,default) [list button canvas checkbutton entry frame label labelframe listbox menu menubutton message panedwindow radiobutton scale scrollbar spinbox text]
+	set sys(widgets,default) [list button canvas checkbutton entry frame label labelframe listbox menu menubutton message panedwindow radiobutton scale scrollbar spinbox text toplevel]
 
 	# a dict containing widget option validation data after
 	# obtainValidationData has been called
@@ -212,7 +212,9 @@ namespace eval xtk {
 			set nodeName [$child nodeName]
 			set originalNodeName $nodeName
 			if {$sys(ttk)} {
-				set nodeName ttk::${nodeName}
+				if {$nodeName ne "toplevel"} {
+					set nodeName ttk::${nodeName}
+				}
 			}
 			if {[isGeometryManager $originalNodeName]} {
 				if {![isGeometryManagerSupported $originalNodeName]} {
@@ -258,9 +260,13 @@ namespace eval xtk {
 				continue
 			} elseif {[isWidgetValid $originalNodeName]} {
 				set parent [$child parentNode]
-				if {![isPack $parent]} {
+				if {$originalNodeName ne "toplevel" && ![isPack $parent]} {
 					throwNodeErrorMessage $child "you must surround widget elements with pack elements '$originalNodeName'"
+				} elseif {$originalNodeName eq "toplevel" && [isPack $parent]} {
+					throwNodeErrorMessage $child "toplevel windows cannot be packed"
 				}
+			} elseif {$originalNodeName eq "toplevel"} {
+				# required so that we don't run into else
 			} else {
 				throwNodeErrorMessage $child "unknown element '$nodeName'"
 			}
@@ -271,10 +277,14 @@ namespace eval xtk {
 			handleVariableAttributeWidget $namespace $path $child
 
 			set tkCommand [string trim "${nodeName} $path [getOptionsFromAttributes $namespace $child]"]
-			addCommand $namespace "[packTkCommand $sys(currentGeomanagerCommand) $tkCommand]"
 
+			if {$originalNodeName ne "toplevel"} {
+				addCommand $namespace "[packTkCommand $sys(currentGeomanagerCommand) $tkCommand]"
+			} else {
+				addCommand $namespace $tkCommand
+			}
 			# recursive -> nesting
-			if {$originalNodeName eq "frame"} {
+			if {$originalNodeName eq "frame" || $originalNodeName eq "toplevel"} {
 				traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
 			}
 		}	
