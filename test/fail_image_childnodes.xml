@@ -1,0 +1,5 @@
+<xtk namespace="xtktest">
+	<image variable="test" type="photo">
+		<label />
+	</image>
+</xtk>
