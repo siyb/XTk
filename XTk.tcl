@@ -265,8 +265,6 @@ namespace eval xtk {
 				} elseif {$originalNodeName eq "toplevel" && ![isXtk $parent]} {
 					throwNodeErrorMessage $child "toplevel must be a child node of xtk"
 				}
-			} elseif {$originalNodeName eq "toplevel"} {
-				# required so that we don't run into else
 			} else {
 				throwNodeErrorMessage $child "unknown element '$nodeName'"
 			}
@@ -522,7 +520,7 @@ namespace eval xtk {
 
 	proc isWidgetValid {widget} {
 		variable sys
-		if {$sys(ttk)} { set widget ttk::${widget} }
+		if {$sys(ttk) && $widget != "toplevel"} { set widget ttk::${widget} }
 		return [dict exists $sys(validation,widget,options) $widget]
 	}
 
