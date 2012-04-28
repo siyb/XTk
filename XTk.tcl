@@ -226,6 +226,9 @@ namespace eval xtk {
 				traverseTree $currentPath $hierarchielevel $namespace $child
 				continue
 			} elseif {[isImageCommand $child]} {
+				if {[$child hasChildNodes]} {
+					throwNodeErrorMessage $child "image may not have any child nodes"
+				}
 				if {![hasTypeAttribute $child]} {
 					throwNodeErrorMessage $child "no type attribute has been specified"
 				}
