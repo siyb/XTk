@@ -43,6 +43,9 @@ namespace eval xtk {
 	# a list of tk widgets that is used to obtain validation data
 	set sys(widgets,default) [list button canvas checkbutton entry frame label labelframe listbox menu menubutton message panedwindow radiobutton scale scrollbar spinbox text toplevel]
 
+	# a list of tk widgets that have no ttk equivalent
+	set sys(widgets,nottk) [list canvas listbox menu message text toplevel]
+
 	# a dict containing widget option validation data after
 	# obtainValidationData has been called
 	set sys(validation,widget,options) [dict create]
@@ -212,7 +215,7 @@ namespace eval xtk {
 			set nodeName [$child nodeName]
 			set originalNodeName $nodeName
 			if {$sys(ttk)} {
-				if {$nodeName ne "toplevel"} {
+				if {![hasTTkEquivalent $nodeName]} {
 					set nodeName ttk::${nodeName}
 				}
 			}
@@ -516,6 +519,11 @@ namespace eval xtk {
 	proc addWidgetValidationData {widget supportedWidgetOptions} {
 		variable sys
 		dict set sys(validation,widget,options) $widget $supportedWidgetOptions
+	}
+
+	proc hasTTkEquivalent {widget} {
+		variable sys
+		return [in $widget $sys(widgets,nottk)]
 	}
 
 	proc isWidgetValid {widget} {
