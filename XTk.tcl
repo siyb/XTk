@@ -25,6 +25,8 @@ namespace eval xtk {
 	# on child widgets. 
 	set sys(currentGeomanagerCommand) ""
 
+	# saves the ttk state that determines if the ttk flag has
+	# been specified in the xtk element
 	set sys(ttk) 0
 
 	# this dict holds data that is required to generate
@@ -41,7 +43,7 @@ namespace eval xtk {
 	set sys(widgets,ttk) [list ttk::button ttk::checkbutton ttk::combobox ttk::entry ttk::frame ttk::label ttk::labelframe ttk::menubutton ttk::notebook ttk::panedwindow ttk::progressbar ttk::radiobutton ttk::scale ttk::scrollbar ttk::separator ttk::sizegrip ttk::spinbox ttk::treeview]
 
 	# a list of tk widgets that is used to obtain validation data
-	set sys(widgets,default) [list button canvas checkbutton entry frame label labelframe listbox menu menubutton message panedwindow radiobutton scale scrollbar spinbox text toplevel]
+	set sys(widgets,default) [list button checkbutton entry frame label labelframe menu menubutton message panedwindow radiobutton scale scrollbar spinbox]
 
 	# a list of tk widgets that have no ttk equivalent
 	set sys(widgets,nottk) [list canvas listbox menu message text toplevel]
@@ -264,9 +266,13 @@ namespace eval xtk {
 			} elseif {[isWidgetValid $originalNodeName]} {
 				set parent [$child parentNode]
 				if {$originalNodeName ne "toplevel" && ![isPack $parent]} {
-					throwNodeErrorMessage $child "you must surround widget elements with pack elements '$originalNodeName'"
+					throwNodeErrorMessage $child "you must surround widget elements with pack / toplevel elements '$originalNodeName'"
 				} elseif {$originalNodeName eq "toplevel" && ![isXtk $parent]} {
 					throwNodeErrorMessage $child "toplevel must be a child node of xtk"
+				} elseif {$originalNodeName eq "toplevel" } {
+					if {[hasProcAttribute $child]} {
+						
+					}
 				}
 			} else {
 				throwNodeErrorMessage $child "unknown element '$nodeName'"
@@ -374,6 +380,10 @@ namespace eval xtk {
 
 	proc hasVariableAttribute {element} {
 		return [$element hasAttribute "variable"]
+	}
+	
+	proc hasProcAttribute {element} {
+		return [$element hasAttribute "proc"]
 	}
 
 	proc isVariableAttributeValid {element} {
@@ -528,13 +538,14 @@ namespace eval xtk {
 
 	proc isWidgetValid {widget} {
 		variable sys
-		if {$sys(ttk) && $widget != "toplevel"} { set widget ttk::${widget} }
+		if {$sys(ttk) && ![hasTTkEquivalent $widget]} { set widget ttk::${widget} }
+		puts "Checking $widget -> [dict exists $sys(validation,widget,options) $widget]"
 		return [dict exists $sys(validation,widget,options) $widget]
 	}
 
 	proc isOptionValidForWidget {widget option} {
 		variable sys
-		if {$sys(ttk)} { set widget ttk::${widget} }
+		if {$sys(ttk) && ![hasTTkEquivalent $widget]} { set widget ttk::${widget} }
 		return [in $option [dict get $sys(validation,widget,options) $widget]]
 	}
 	
