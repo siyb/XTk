@@ -210,8 +210,7 @@ namespace eval xtk {
 	}
 
 	proc traverseTree {currentPath hierarchielevel namespace element} {
-		variable sys
-
+		variable sys 
 		foreach child [$element childNodes] {
 
 			set nodeName [$child nodeName]
@@ -265,13 +264,15 @@ namespace eval xtk {
 				continue
 			} elseif {[isWidgetValid $originalNodeName]} {
 				set parent [$child parentNode]
-				if {$originalNodeName ne "toplevel" && ![isPack $parent]} {
+				if {![isToplevel $child] && ![isPack $parent]} {
 					throwNodeErrorMessage $child "you must surround widget elements with pack / toplevel elements '$originalNodeName'"
-				} elseif {$originalNodeName eq "toplevel" && ![isXtk $parent]} {
+				} elseif {[isToplevel $child] && ![isXtk $parent]} {
 					throwNodeErrorMessage $child "toplevel must be a child node of xtk"
-				} elseif {$originalNodeName eq "toplevel" } {
+				} elseif {[isToplevel $child]} {
 					if {[hasProcAttribute $child]} {
-						
+						if {[hasProcAttribute $child]} {
+							continue
+						}
 					}
 				}
 			} else {
@@ -358,6 +359,11 @@ namespace eval xtk {
 	proc isPack {element} {
 		set nodeName [$element nodeName]
 		return [eq $nodeName "pack"]
+	}
+	
+	proc isToplevel {element} {
+		set nodeName [$element nodeName]
+		return [eq $nodeName "toplevel"]
 	}
 
 	proc getPackOptions {namespace element} {
@@ -539,7 +545,6 @@ namespace eval xtk {
 	proc isWidgetValid {widget} {
 		variable sys
 		if {$sys(ttk) && ![hasTTkEquivalent $widget]} { set widget ttk::${widget} }
-		puts "Checking $widget -> [dict exists $sys(validation,widget,options) $widget]"
 		return [dict exists $sys(validation,widget,options) $widget]
 	}
 
