@@ -19,7 +19,7 @@ namespace eval xtk {
 
 	# used to store a counter for each hierarchie level.
 	# will be incremented every time a widget is create.
-	set sys(pathCounter) [dict create]
+	set sys(pathCounter) -1
 
 	# stores the most recent pack command to be invoked
 	# on child widgets. 
@@ -28,6 +28,9 @@ namespace eval xtk {
 	# saves the ttk state that determines if the ttk flag has
 	# been specified in the xtk element
 	set sys(ttk) 0
+	
+	# toplevel proc stucture
+	set sys(temp,toplevel,currentProc) [dict create]
 
 	# this dict holds data that is required to generate
 	# TCL/TK code from XML
@@ -136,6 +139,13 @@ namespace eval xtk {
 					append code "\tbind $path $evnt { ${namespace}::bindCallback $path $callbackString }\n"
 				}
 			}
+			if {[dict exists $sys(generate,code) ${namespace}_proc]} {
+				append code "\n\t# Procs\n"
+				foreach dict [dict get $sys(generate,code) ${namespace}_proc] {
+				puts "--> $dict"
+					append code "$dict\n"
+				}
+			}
 			append code "}\n\n"
 			set ret ${base64code}${code}
 		}
@@ -177,6 +187,11 @@ namespace eval xtk {
 		dict lappend sys(generate,code) ${namespace}_images $namespace $type $options $variable $base64
 	}
 
+	proc addToplevelProc {proc procDict} {
+		variable sys
+		dict lappend sys(generate,code) ${namespace}_proc $procDict
+	}
+
 	proc doesNamespaceExistInCode {namespace} {
 		variable sys
 		if {[dict exists $sys(generate,code) "namespace"]} {
@@ -208,9 +223,11 @@ namespace eval xtk {
 		namespace eval ::${namespace} { }
 		return $namespace
 	}
-
+	
 	proc traverseTree {currentPath hierarchielevel namespace element} {
-		variable sys 
+		variable sys
+		variable temp
+		
 		foreach child [$element childNodes] {
 
 			set nodeName [$child nodeName]
@@ -263,30 +280,42 @@ namespace eval xtk {
 				addImage $namespace $type $options $variable $base64
 				continue
 			} elseif {[isWidgetValid $originalNodeName]} {
+				
+				
 				set parent [$child parentNode]
 				if {![isToplevel $child] && ![isPack $parent]} {
 					throwNodeErrorMessage $child "you must surround widget elements with pack / toplevel elements '$originalNodeName'"
 				} elseif {[isToplevel $child] && ![isXtk $parent]} {
 					throwNodeErrorMessage $child "toplevel must be a child node of xtk"
 				} elseif {[isToplevel $child]} {
+					if {$sys(temp,toplevel,currentProc) != -1} {
+						addToplevelProc $sys(temp,toplevel,currentProc)
+						set sys(temp,toplevel,currentProc) -1
+					}
 					if {[hasProcAttribute $child]} {
-						if {[hasProcAttribute $child]} {
-							continue
-						}
+						dict set sys(temp,toplevel,currentProc) name [getProcAttribute $child]
+						traverseTree $path [expr {$hierarchielevel + 1}] $namespace $child
+						#continue
 					}
 				}
 			} else {
 				throwNodeErrorMessage $child "unknown element '$nodeName'"
 			}
-
+			
 			set path [getUniquePathSegmentForLevel $hierarchielevel $currentPath]
-
+			
 			handleBindCommand $namespace $path $child
 			handleVariableAttributeWidget $namespace $path $child
-
+			
 			set tkCommand [string trim "${nodeName} $path [getOptionsFromAttributes $namespace $child]"]
-
-			if {$originalNodeName ne "toplevel"} {
+			
+			if {[isToplevelProcChild $child] || ([isToplevel $child] && [hasProcAttribute $child])} {
+				if {[isToplevel $child]} {
+					dict lappend sys(temp,toplevel,currentProc) lines $tkCommand
+				} else {
+					dict lappend sys(temp,toplevel,currentProc) lines "[packTkCommand $sys(currentGeomanagerCommand) $tkCommand]"
+				}
+			} elseif {![isToplevel $child]} {
 				addCommand $namespace "[packTkCommand $sys(currentGeomanagerCommand) $tkCommand]"
 			} else {
 				addCommand $namespace $tkCommand
@@ -332,6 +361,18 @@ namespace eval xtk {
 
 	proc isXtk {element} {
 		return [eq [$element nodeName] "xtk"]
+	}
+	
+	proc isToplevelProcChild {element} {
+		set parent [$element parentNode]
+		#puts "checking [$parent nodeName] for [$element nodeName] TL [isToplevel $parent] P [hasProcAttribute $parent] X [isXtk $parent]"
+		if {[isToplevel $parent] && [hasProcAttribute $parent]} {
+			return 1
+		} elseif {[isXtk $parent]} {
+			return 0
+		} else {
+			return [isToplevelProcChild $parent]
+		}
 	}
 
 	proc handleBindCommand {namespace path child} {
@@ -390,6 +431,10 @@ namespace eval xtk {
 	
 	proc hasProcAttribute {element} {
 		return [$element hasAttribute "proc"]
+	}
+	
+	proc getProcAttribute {element} {
+		return [$element getAttribute "proc"]
 	}
 
 	proc isVariableAttributeValid {element} {
