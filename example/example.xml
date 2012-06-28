@@ -8,6 +8,14 @@
 				<label text="Close button: " variable="lableCloseButton" />
 			</pack>
 		</frame>
+		<frame>
+			<pack fill="both" expand="1" side="right">
+				<button text="Open Toplevel" variable="buttonToplevel" command="topLevelProc" />
+			</pack>
+			<pack fill="both" expand="0" side="left" before="@buttonToplevel">
+				<label text="Open Toplevel Button: "/>
+			</pack>
+		</frame>
 		<pack fill="x" expand="0" side="bottom">
 			<label text="This label reacts on mouse1 clicks" variable="labelBindTest">
 				<bind event="Button-1" callbackString="%W %T" virtual="0" />
@@ -23,6 +31,12 @@
 			<label text="This is a toplevel test" />
 		</pack>
 	</toplevel>
+	<toplevel proc="topLevelProc">
+		<pack>
+			<label text="This Toplevel code will only be executed when a button is pressed" />
+		</pack>
+	</toplevel>
+	
 	<image type="photo" variable="imagevariable" base64="1" file="example.png" />
 	<image type="photo" variable="another_image" file="example2.png" />
 </xtk>
