@@ -177,7 +177,7 @@ class create Image {
 		set callbackString $_base64
 	}
 	
-	method getType{} {
+	method getType {} {
 		my variable type
 		return $type
 	}
