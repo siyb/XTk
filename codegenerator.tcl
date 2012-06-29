@@ -55,89 +55,86 @@ class create CodeGenerator {
 }
 
 class create Code {
-	set commands [list]
-	set variables [list]
-	set binds [list]
-	set images [list]
+	variable commands
+	variable variables
+	variable binds
+	variable images
+	variable namespace
 	
 	constructor {_namespace} {
-		my variable namespace
 		set namespace $_namespace
+		set commands [list]
+		set variables [list]
+		set binds [list]
+		set images [list]
 	}
 	
 	method addCommand {command} {
-		my variable commands
 		lappend commands $commands
 	}
 	
 	method addVariable {variable} {
-		my variable variables
 		lappend variables $variable
 	}
 	
 	method addBind {bind} {
-		my variable binds
 		lappend binds $bind
 	}
 	
 	method addImage {image} {
-		my variable images
 		lappend images $image
 	}
 	
 	method getCommands {} {
-		my variable commands
 		return $commands
 	}
 	
 	method getVariables {} {
-		my variable variables
 		return $variables
 	}
 	
 	method getBinds {} {
-		my variable binds
 		return $binds
 	}
 }
 
 class create Command {
+	variable command
+	
 	constructor {_command} {
-		my variable command
 		set command $_command
 	}
 	
 	method getCommand {} {
-		my variable command
 		return $command
 	}
 }
 
 class create Variable {
+	variable varName
+	variable value
+	
 	constructor {_varName _value} {
-		my variable varName
-		my variable value
 		set varName $_varName
 		set value $v_alue
 	}
 	
 	method getVarName {} {
-		my variable varName
 		return $varName
 	}
 	
 	method getValue {} {
-		my variable value
 		return $value
 	}
 }
 
 class create Bind {
+	variable path
+	variable evnt
+	variable virtual
+	variable callbackString
+	
 	constructor {_path _evnt _virtual _callbackString} {
-		my variable path
-		my variable evnt
-		my variable virtual
-		my variable callbackString
 		set path $_path
 		set evnt $_evnt
 		set virtual $_virtual
@@ -145,32 +142,29 @@ class create Bind {
 	}
 	
 	method getPath {} {
-		my variable path
 		return $path
 	}
 	
 	method getEvnt {} {
-		my variable evnt
 		return $evnt
 	}
 	
 	method getVirtual {} {
-		my variable virtual
 		return $virtual
 	}
 	
 	method getCallbackString {} {
-		my variable callbackString
 		return $callbackString
 	}
 }
 
 class create Image {
+	variable type
+	variable options
+	variable variable
+	variable base64
+	
 	constructor {_type _options _variable _base64} {
-		my variable type
-		my variable options
-		my variable variable
-		my variable base64
 		set type $_type
 		set options $_options
 		set variable$_variable
@@ -178,22 +172,18 @@ class create Image {
 	}
 	
 	method getType {} {
-		my variable type
 		return $type
 	}
 	
 	method getOptions {} {
-		my variable options
 		return $options
 	}
 	
 	method getVariable {} {
-		my variable variable
 		return $variable
 	}
 	
 	method getBase64 {} {
-		my variable base64
 		return $base64
 	}
 }
