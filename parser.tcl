@@ -63,6 +63,12 @@ class create WidgetInformation {
 		my obtainValidationData
 	}
 	
+	destructor {} {
+		foreach item $validationData {
+			$item destroy
+		}
+	}
+	
 	method obtainValidationData {} {
 		set counter 0
 		foreach {key widgets} [array get sys widgets,*] {

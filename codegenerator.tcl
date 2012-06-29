@@ -3,19 +3,22 @@ package provide 0.2
 namespace import oo::*
 
 class create CodeGenerator {
-
+	variable code codeString
+	
 	constructor {_code} {
-		my variable code $_code
+		set code $_code
+	}
+	
+	destructor {} {
+		code destroy
 	}
 	
 	method generateCode {} {
-		my variable code
-		my variable codeString
 		set namespace [$code getNamespace]
 		
-		append code "namespace eval $namespace {\n"
-		append code "\n\t# Image declaration\n"
-		append code "\tnamespace eval images {\n"
+		append c "namespace eval $namespace {\n"
+		append c "\n\t# Image declaration\n"
+		append c "\tnamespace eval images {\n"
 		foreach image [$code getImages] {
 			set options [$image getOptions]
 			set variable [$image getVariable]
@@ -25,31 +28,31 @@ class create CodeGenerator {
 				append base64code "\t\tset base64(${variable}) \"$base64Data\"\n"
 				set options [dict remove $options "-file"]
 				dict set options -data $${namespace}::images::base64(${variable})
-				append code "\t\tset $variable \[image create $type [join $options]]\n"
+				append c "\t\tset $variable \[image create $type [join $options]]\n"
 			} else {
-				append code "\t\tset $variable \[image create $type $options]\n"
+				append c "\t\tset $variable \[image create $type $options]\n"
 			}
 		}
 		append base64code "}\n"
-		append code "\t}\n"
+		append c "\t}\n"
 		
-		append code "\n\t# Variable / widget path declaration\n"
+		append c "\n\t# Variable / widget path declaration\n"
 		foreach variable [$code getVariables] {
 		}
 		
-		append code "\n\t# GUI Code\n"
+		append c "\n\t# GUI Code\n"
 		foreach command [$code getCommands] {
-			append code "\t[$command getCommand]\n"
+			append c "\t[$command getCommand]\n"
 		}
 		
-		append code "\n\t# GUI Bindings\n"
+		append c "\n\t# GUI Bindings\n"
 		foreach bind [$code getBinds] {
 			if {$virtual} {
 				set evnt "<<[$bind getEvnt]>>"
 			} else {
 				set evnt "<[$bind getEvnt]>"
 			}
-			append code "\tbind [$bind getPath] $evnt { ${namespace}::bindCallback [$bind getPath] [$bind getCallbackString] }\n"
+			append c "\tbind [$bind getPath] $evnt { ${namespace}::bindCallback [$bind getPath] [$bind getCallbackString] }\n"
 		}
 	}
 }
@@ -63,6 +66,12 @@ class create Code {
 		set variables [list]
 		set binds [list]
 		set images [list]
+	}
+	
+	destructor {} {
+		foreach item [concat $commands $variables $binds $images] {
+			$item destroy
+		}
 	}
 	
 	method addCommand {command} {
