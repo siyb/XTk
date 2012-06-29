@@ -55,11 +55,7 @@ class create CodeGenerator {
 }
 
 class create Code {
-	variable commands
-	variable variables
-	variable binds
-	variable images
-	variable namespace
+	variable commands variables binds images namespace
 	
 	constructor {_namespace} {
 		set namespace $_namespace
@@ -111,8 +107,7 @@ class create Command {
 }
 
 class create Variable {
-	variable varName
-	variable value
+	variable varName value
 	
 	constructor {_varName _value} {
 		set varName $_varName
@@ -129,10 +124,7 @@ class create Variable {
 }
 
 class create Bind {
-	variable path
-	variable evnt
-	variable virtual
-	variable callbackString
+	variable path evnt virtual callbackString
 	
 	constructor {_path _evnt _virtual _callbackString} {
 		set path $_path
@@ -159,15 +151,12 @@ class create Bind {
 }
 
 class create Image {
-	variable type
-	variable options
-	variable variable
-	variable base64
+	variable type options variable base64
 	
 	constructor {_type _options _variable _base64} {
 		set type $_type
 		set options $_options
-		set variable$_variable
+		set variable $_variable
 		set callbackString $_base64
 	}
 	
