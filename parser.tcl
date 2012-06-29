@@ -1,11 +1,26 @@
 package provide XTkParser 0.2
 
 package require tdom
+package require XTkCodeGenerator
 
 namespace import oo::*
 namespace import ::tcl::mathop::*
 
 class create Parser {
+	variable widgetInformation code uniquePathGenerator
+	
+	constructor {} {
+		set widgetInformation [WidgetInformation new]
+		set code [Code new]
+		set uniquePathGenerator [UniquePathGenerator new]
+	}
+	
+	destructor {
+		$widgetInformation destroy
+		$code destroy
+		$uniquePathGenerator destroy
+	}
+	
 	method load {file} {
 		variable sys
 		if {![file exists $file]} {
@@ -31,18 +46,34 @@ class create Parser {
 	}
 	
 	method parse {element} {
-		foreach child [$element childNodes] {
-			set nodeName [$child nodeName]
+		foreach node [$element childNodes] {
+			# some information used in looping
+			set nodeName [$node nodeName]
+			set hasChildNodes [$node
 		}
 	}
+}
+
+class create UniquePathGenerator {
+	variable counter sys
 	
-	method handleWidgetCommand {element} {
+	constructor {} {
+		set counter 0
 	}
 	
-	method handleGeometryManager {element} {
-	}
-	
-	method handleImageTag {element} {
+	method getUniquePathSegmentForLevel {level currentPath} {
+		if {$currentPath eq "."} {
+			set sep ""
+		} else {
+			set sep "."
+		}
+		if {[dict exists $sys($counter) $level]} {
+			dict incr sys($counter) $level
+			return ${currentPath}${sep}[dict get $sys($counter) $level]
+		} else {
+			dict set sys($counter) $level 0
+			return ${currentPath}${sep}0
+		}
 	}
 }
 
@@ -63,7 +94,7 @@ class create WidgetInformation {
 		my obtainValidationData
 	}
 	
-	destructor {} {
+	destructor {
 		foreach item $validationData {
 			$item destroy
 		}
@@ -117,7 +148,7 @@ class create WidgetInformation {
 	method isOptionValidForWidget {option widget} {
 		foreach widgetData $validationData {
 			if {[$widgetData getWidget] eq $widget} {
-				return [in [$widgetData getOptions] $option]
+				return [$widgetData isValidOption $option]
 			}
 		}
 		return 0
@@ -139,5 +170,9 @@ class create ValidationData {
 	
 	method getSupportedWidgetOptions {} {
 		return $supportedWidgetOptions
+	}
+	
+	method isValidOption {option} {
+		return [in $option $supportedWidgetOptions]
 	}
 }
