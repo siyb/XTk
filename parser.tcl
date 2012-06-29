@@ -49,7 +49,7 @@ class create Parser {
 		foreach node [$element childNodes] {
 			# some information used in looping
 			set nodeName [$node nodeName]
-			set hasChildNodes [$node
+			set hasChildNodes [$node hasChildNodes]
 		}
 	}
 }
