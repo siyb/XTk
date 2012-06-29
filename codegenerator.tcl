@@ -1,4 +1,4 @@
-package provide 0.2
+package provide XTkCodeGenerator 0.2
 
 namespace import oo::*
 
@@ -9,7 +9,7 @@ class create CodeGenerator {
 		set code $_code
 	}
 	
-	destructor {} {
+	destructor {
 		code destroy
 	}
 	
@@ -68,7 +68,7 @@ class create Code {
 		set images [list]
 	}
 	
-	destructor {} {
+	destructor {
 		foreach item [concat $commands $variables $binds $images] {
 			$item destroy
 		}
