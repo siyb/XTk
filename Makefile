@@ -1,7 +1,7 @@
 prefix = ${DESTDIR}
 
 install:
-	echo "pkg_mkIndex -verbose -direct ." | tclsh
+	echo "pkg_mkIndex -verbose -direct ." | tclsh8.6
 	install -Dm644 "XTk.tcl" "${DESTDIR}/usr/lib/tcltk/XTk/XTk.tcl"
 	install -Dm644 "codegenerator.tcl" "${DESTDIR}/usr/lib/tcltk/XTk/codegenerator.tcl"
 	install -Dm644 "parser.tcl" "${DESTDIR}/usr/lib/tcltk/XTk/parser.tcl"
