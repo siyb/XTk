@@ -7,12 +7,15 @@ namespace import oo::*
 namespace import ::tcl::mathop::*
 
 class create Parser {
-	variable widgetInformation code uniquePathGenerator
+	variable widgetInformation code uniquePathGenerator sys
 	
 	constructor {} {
 		set widgetInformation [WidgetInformation new]
 		set code [Code new]
 		set uniquePathGenerator [UniquePathGenerator new]
+		
+		set sys(geometryManager,supported) [list pack]
+		set sys(geometryManager,all) [list pack place grid]
 	}
 	
 	destructor {
@@ -45,12 +48,38 @@ class create Parser {
 		return [$code]
 	}
 	
-	method parse {element} {
+	method parse {element level} {
 		foreach node [$element childNodes] {
 			# some information used in looping
 			set nodeName [$node nodeName]
 			set hasChildNodes [$node hasChildNodes]
+			
+			handleGeometryManager $nodeName
+			
+			if {$hasChildNodes} {
+				parse $node
+			}
 		}
+	}
+	
+	method handleGeometryManager {nodeName} {
+		if {[my isGeometryManager $nodeName]} {
+			if {![my isGeometryManagerSupported $nodeName]} {
+				my error "Geometry manager '$nodeName' not supported"
+			}
+		}
+	}
+	
+	method isGeometryManager {manager} {
+		return [in $manager $sys(geometryManager,all)]
+	}
+	
+	method isGeometryManagerSupported {manager} {
+		return [in $manager $sys(geometryManager,supported)]
+	}
+	
+	method error {node message} {
+		error "line: [$node getLine] column: [$node getColumn] -> $message"
 	}
 }
 
